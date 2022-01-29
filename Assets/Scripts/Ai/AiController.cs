@@ -13,6 +13,7 @@ public class AiController : MonoBehaviour
     CoverController Covers;
     Transform TargetToFollow;
     List<AiAgent> Agents;
+    List<AiAgent> AvailableAgents;
 
     public void Init(CoverController cover, Transform target)
     {
@@ -28,7 +29,7 @@ public class AiController : MonoBehaviour
     
     void SpawnAgents()
     {
-        Agents = new List<AiAgent>();
+        Agents = new List<AiAgent>(AgentsCount);
         for (int i = 0; i < AgentsCount; i++)
         {
             var spawnPosition = SpawnInitialPosition + SpawnOffset * i;
@@ -36,18 +37,98 @@ public class AiController : MonoBehaviour
             agent.Init($"Agent-{i.ToString()}");
             Agents.Add(agent);
         }
+        AvailableAgents = new List<AiAgent>(Agents);
     }
 
     void UpdateAgents()
     {
-        foreach (var agent in Agents)
+        var availableAgents = FillAvailableAgents();
+        var sortedPoints = Covers.GetSortedPoints(TargetToFollow.position);
+
+        for (int i = 0; i < sortedPoints.Count; i++)
         {
-            if (!agent.HasPoint || !Covers.IsCovered(agent.CurrentPoint.Position, TargetToFollow.position))
+            var point = sortedPoints[i];
+            if (!IsCovered(point))
             {
-                var newDestination = Covers.GetClosest(agent.Position, TargetToFollow.position);
-                agent.SetDestination(newDestination);
+                continue;
+            }
+            
+            if (!point.HasOwner)
+            {
+                SetClosestAvailableAgent(availableAgents, point);
+            }
+            else
+            {
+                RemoveAvailableAgent(point.Owner);
+            }
+
+            if (!AnyAvailableAgents())
+            {
+                break;
             }
         }
     }
+
+    bool IsCovered(CoverPoint point)
+    {
+        return Covers.IsCovered(point.Position, TargetToFollow.position);
+    }
+
+    bool AnyAvailableAgents()
+    {
+        var result = false;
+        for (int i = 0; i < AvailableAgents.Count; i++)
+        {
+            if (AvailableAgents[i])
+            {
+                result = true;
+                break;
+            }
+        }
+        return result;
+    }
     
+    List<AiAgent> FillAvailableAgents()
+    {
+        for (int i = 0; i < AvailableAgents.Count; i++)
+        {
+            AvailableAgents[i] = Agents[i];
+        }
+        return AvailableAgents;
+    }
+
+    void RemoveAvailableAgent(AiAgent agent)
+    {
+        for (int i = 0; i < AvailableAgents.Count; i++)
+        {
+            if (AvailableAgents[i] == agent)
+            {
+                AvailableAgents[i] = null;
+                break;
+            }
+        }
+    }
+
+    void SetClosestAvailableAgent(List<AiAgent> availableAgents, CoverPoint point)
+    {
+        AiAgent closestAgent = null;
+        var minSqrDistance = float.MaxValue;
+        foreach (var agent in AvailableAgents)
+        {
+            if (!agent)
+            {
+                continue;
+            }
+            
+            var sqrDistance = (agent.Position - point.Position).sqrMagnitude;
+            if (sqrDistance < minSqrDistance)
+            {
+                closestAgent = agent;
+                minSqrDistance = sqrDistance;
+            }
+        }
+        closestAgent.SetDestination(point);
+        
+        RemoveAvailableAgent(closestAgent);
+    }
 }

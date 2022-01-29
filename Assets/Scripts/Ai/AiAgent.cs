@@ -9,12 +9,13 @@ using UnityEditor;
 
 public class AiAgent : MonoBehaviour
 {
+    const float Epsilon = 0.01f;
+    
     [SerializeField] NavMeshAgent NavMeshAgent;
 
     public string Name { get; private set; }
     public CoverPoint CurrentPoint { get; private set; }
-
-    public bool HasPoint => CurrentPoint != null;
+    
     public Vector3 Position => transform.position;
 
     public void Init(string name)
@@ -29,7 +30,7 @@ public class AiAgent : MonoBehaviour
         {
             return;
         }
-        
+
         CurrentPoint?.Free();
         NavMeshAgent.destination = newPoint.Position;
         newPoint.Lock(this);

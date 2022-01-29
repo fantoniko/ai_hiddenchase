@@ -18,14 +18,12 @@ public sealed class CoverController : MonoBehaviour
     
     List<CoverPoint> CoverPoints;
 
-    static Vector3 TargetPosition; 
-    
+    static Vector3 TargetPosition;
     static Comparison<CoverPoint> ComparePoints = (a, b) =>
     {
         var targetPosition = TargetPosition;
         return (int)((a.Position - targetPosition).sqrMagnitude - (b.Position - targetPosition).sqrMagnitude);
     };
-    
 
     public void Init()
     {
@@ -77,12 +75,18 @@ public sealed class CoverController : MonoBehaviour
         return !hit.collider || 1 << hit.collider.gameObject.layer != (int)RaycastLayer.Player;
     }
 
+    public List<CoverPoint> GetSortedPoints(Vector3 newTargetPosition)
+    {
+        SortPoints(newTargetPosition);
+        return CoverPoints;
+    }
+    
     void SortPoints(Vector3 newTargetPosition)
     {
         TargetPosition = newTargetPosition;
         CoverPoints.Sort(ComparePoints);
     }
-    
+
 #if UNITY_EDITOR
     void OnDrawGizmos()
     {

@@ -106,7 +106,7 @@ GameObject:
   - component: {fileID: 2661571081824304201}
   - component: {fileID: 1962834103254810773}
   - component: {fileID: 3474750860478248911}
-  - component: {fileID: 6133401454124174881}
+  - component: {fileID: -5922460180963853290}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -167,7 +167,7 @@ MonoBehaviour:
   KeyDownAlternate: 274
   KeyRightAlternate: 275
   KeyLeftAlternate: 276
---- !u!208 &6133401454124174881
+--- !u!208 &-5922460180963853290
 NavMeshObstacle:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -176,10 +176,10 @@ NavMeshObstacle:
   m_GameObject: {fileID: 7682889323696080997}
   m_Enabled: 1
   serializedVersion: 3
-  m_Shape: 1
+  m_Shape: 0
   m_Extents: {x: 0.5, y: 0.5, z: 0.5}
   m_MoveThreshold: 0.1
-  m_Carve: 0
+  m_Carve: 1
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0.5, z: 0}
   m_TimeToStationary: 0.5
