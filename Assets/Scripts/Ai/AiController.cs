@@ -9,7 +9,12 @@ public class AiController : MonoBehaviour
     
     [SerializeField] AiAgent AgentPrefab;
     [SerializeField] int AgentsCount;
+    
+    [Tooltip("Period for AI ticks to reduce FixedUpdate load with a large number of agents and obstacles.")]
+    [SerializeField, Range(1, 10)] int FixedUpdatePeriod;
 
+    int PeriodCounter;
+    
     CoverController Covers;
     Transform TargetToFollow;
     List<AiAgent> Agents;
@@ -19,12 +24,13 @@ public class AiController : MonoBehaviour
     {
         Covers = cover;
         TargetToFollow = target;
+        PeriodCounter = 0;
         SpawnAgents();
     }
 
     public void OnFixedUpdate()
     {
-        UpdateAgents();
+        UpdateAiPeriod();
     }
     
     void SpawnAgents()
@@ -38,6 +44,16 @@ public class AiController : MonoBehaviour
             Agents.Add(agent);
         }
         AvailableAgents = new List<AiAgent>(Agents);
+    }
+
+    void UpdateAiPeriod()
+    {
+        PeriodCounter++;
+        if (PeriodCounter == FixedUpdatePeriod)
+        {
+            UpdateAgents();
+            PeriodCounter = 0;
+        }
     }
 
     void UpdateAgents()

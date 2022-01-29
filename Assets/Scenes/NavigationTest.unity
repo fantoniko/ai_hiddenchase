@@ -1026,6 +1026,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AgentPrefab: {fileID: 8130879259091468708, guid: 6c2ebfd02e89da545aa41ecfec35818d, type: 3}
   AgentsCount: 10
+  FixedUpdatePeriod: 1
 --- !u!4 &1412899512
 Transform:
   m_ObjectHideFlags: 0
