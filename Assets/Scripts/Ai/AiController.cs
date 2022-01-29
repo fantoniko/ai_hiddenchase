@@ -18,7 +18,8 @@ public class AiController : MonoBehaviour
     CoverController Covers;
     Transform TargetToFollow;
     List<AiAgent> Agents;
-    List<AiAgent> AvailableAgents;
+
+    AgentsPool Pool;
 
     public void Init(CoverController cover, Transform target)
     {
@@ -26,6 +27,7 @@ public class AiController : MonoBehaviour
         TargetToFollow = target;
         PeriodCounter = 0;
         SpawnAgents();
+        Pool = new AgentsPool(Agents);
     }
 
     public void OnFixedUpdate()
@@ -43,7 +45,6 @@ public class AiController : MonoBehaviour
             agent.Init($"Agent-{i.ToString()}");
             Agents.Add(agent);
         }
-        AvailableAgents = new List<AiAgent>(Agents);
     }
 
     void UpdateAiPeriod()
@@ -59,7 +60,7 @@ public class AiController : MonoBehaviour
     void UpdateAgents()
     {
         // Filling Agents pool for current AI tick
-        var availableAgents = FillAvailableAgents();
+        Pool.FillAvailableAgents(Agents);
         
         // Sorting cover points by distance to target to start with most appropriate
         var sortedPoints = Covers.GetSortedPoints(TargetToFollow.position);
@@ -74,20 +75,10 @@ public class AiController : MonoBehaviour
                 continue;
             }
 
-            AiAgent agentToRemove;
-            if (!point.HasOwner)
-            {
-                // Set closest agent and remove him from pool
-                agentToRemove = SetClosestAvailableAgent(availableAgents, point);
-            }
-            else
-            {
-                // If good point already has owner, then just removing him from pool
-                agentToRemove = point.Owner;
-            }
-            RemoveAvailableAgent(agentToRemove);
+            // Check point to stay on it or set closest agent 
+            Pool.HandlePoint(point);
             
-            if (!AnyAvailableAgents())
+            if (!Pool.AnyAvailableAgents())
             {
                 // If all agents are set, then finishing
                 break;
@@ -99,61 +90,5 @@ public class AiController : MonoBehaviour
     {
         return Covers.IsCovered(point.Position, TargetToFollow.position);
     }
-
-    bool AnyAvailableAgents()
-    {
-        var result = false;
-        for (int i = 0; i < AvailableAgents.Count; i++)
-        {
-            if (AvailableAgents[i])
-            {
-                result = true;
-                break;
-            }
-        }
-        return result;
-    }
     
-    List<AiAgent> FillAvailableAgents()
-    {
-        for (int i = 0; i < AvailableAgents.Count; i++)
-        {
-            AvailableAgents[i] = Agents[i];
-        }
-        return AvailableAgents;
-    }
-
-    void RemoveAvailableAgent(AiAgent agent)
-    {
-        for (int i = 0; i < AvailableAgents.Count; i++)
-        {
-            if (AvailableAgents[i] == agent)
-            {
-                AvailableAgents[i] = null;
-                break;
-            }
-        }
-    }
-    
-    AiAgent SetClosestAvailableAgent(List<AiAgent> availableAgents, CoverPoint point)
-    {
-        AiAgent closestAgent = null;
-        var minSqrDistance = float.MaxValue;
-        foreach (var agent in AvailableAgents)
-        {
-            if (!agent)
-            {
-                continue;
-            }
-            
-            var sqrDistance = (agent.Position - point.Position).sqrMagnitude;
-            if (sqrDistance < minSqrDistance)
-            {
-                closestAgent = agent;
-                minSqrDistance = sqrDistance;
-            }
-        }
-        closestAgent.SetDestination(point);
-        return closestAgent;
-    }
 }
