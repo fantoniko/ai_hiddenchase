@@ -1,0 +1,99 @@
+using System;
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
+
+public sealed class CoverController : MonoBehaviour
+{
+    [Flags]
+    enum RaycastLayer : int
+    {
+        Player = 1 << 6,
+        Obstacles = 1 << 7
+    }
+
+    const float AgentYCenter = 0.5f;
+    const float MaxRaycastDistance = 100f;
+    
+    readonly int RaycastLayerMask = (int)(RaycastLayer.Player | RaycastLayer.Obstacles);
+    
+    List<CoverPoint> CoverPoints;
+
+    static Vector3 TargetPosition; 
+    
+    static Comparison<CoverPoint> ComparePoints = (a, b) =>
+    {
+        var targetPosition = TargetPosition;
+        return (int)((a.Position - targetPosition).sqrMagnitude - (b.Position - targetPosition).sqrMagnitude);
+    };
+
+    void OnDrawGizmos()
+    {
+        if (CoverPoints == null)
+        {
+            return;
+        }
+        
+        foreach (var point in CoverPoints)
+        {
+            point.OnDrawGizmos();
+        }
+    }
+
+    public void Init()
+    {
+        CoverPoints = new List<CoverPoint>();
+
+        var covers = GameObject.FindObjectsOfType<Cover>();
+        foreach (var cover in covers)
+        {
+            AddCoverPoints(cover);
+        }
+
+        Debug.Log($"Created {CoverPoints.Count} cover points");
+    }
+
+    void AddCoverPoints(Cover cover)
+    {
+        foreach (var transform in cover.PointTransformsEnum)
+        {
+            var pointPosition = transform.position;
+            if (NavMeshTools.IsPositionReachable(pointPosition))
+            {
+                CoverPoints.Add(new CoverPoint(pointPosition));
+            }
+        }
+    }
+
+    public CoverPoint GetClosest(Vector3 sourcePosition, Vector3 coveredFrom)
+    {
+        SortPoints(coveredFrom);
+        
+        CoverPoint result = null;
+        foreach (var coverPoint in CoverPoints)
+        {
+            if(!coverPoint.HasOwner && IsCovered(coverPoint.Position, coveredFrom))
+            {
+                result = coverPoint;
+                break;
+            }
+        }
+        return result;
+    }
+
+    public bool IsCovered(Vector3 position, Vector3 coveredFrom)
+    {
+        var direction = coveredFrom - position;
+        position.y += AgentYCenter;
+        var ray = new Ray(position, direction);
+        var raycast = Physics.Raycast(ray, out RaycastHit hit, MaxRaycastDistance, RaycastLayerMask);
+        return !hit.collider || 1 << hit.collider.gameObject.layer != (int)RaycastLayer.Player;
+    }
+
+    void SortPoints(Vector3 newTargetPosition)
+    {
+        TargetPosition = newTargetPosition;
+        CoverPoints.Sort(ComparePoints);
+    }
+    
+}
