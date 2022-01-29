@@ -1,7 +1,11 @@
 using System;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 
 public class AiAgent : MonoBehaviour
 {
@@ -12,11 +16,6 @@ public class AiAgent : MonoBehaviour
 
     public bool HasPoint => CurrentPoint != null;
     public Vector3 Position => transform.position;
-
-    void OnDrawGizmos()
-    {
-        Handles.Label(Position, Name, GUIStyle.none);
-    }
 
     public void Init(string name)
     {
@@ -36,4 +35,11 @@ public class AiAgent : MonoBehaviour
         newPoint.Lock(this);
         CurrentPoint = newPoint;
     }
+
+#if UNITY_EDITOR
+    void OnDrawGizmos()
+    {
+        Handles.Label(Position, Name, GUIStyle.none);
+    }
+#endif
 }

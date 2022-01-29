@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 public sealed class CoverController : MonoBehaviour
@@ -26,19 +25,7 @@ public sealed class CoverController : MonoBehaviour
         var targetPosition = TargetPosition;
         return (int)((a.Position - targetPosition).sqrMagnitude - (b.Position - targetPosition).sqrMagnitude);
     };
-
-    void OnDrawGizmos()
-    {
-        if (CoverPoints == null)
-        {
-            return;
-        }
-        
-        foreach (var point in CoverPoints)
-        {
-            point.OnDrawGizmos();
-        }
-    }
+    
 
     public void Init()
     {
@@ -96,4 +83,18 @@ public sealed class CoverController : MonoBehaviour
         CoverPoints.Sort(ComparePoints);
     }
     
+#if UNITY_EDITOR
+    void OnDrawGizmos()
+    {
+        if (CoverPoints == null)
+        {
+            return;
+        }
+        
+        foreach (var point in CoverPoints)
+        {
+            point.OnDrawGizmos();
+        }
+    }
+#endif
 }
