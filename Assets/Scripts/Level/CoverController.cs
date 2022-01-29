@@ -50,22 +50,6 @@ public sealed class CoverController : MonoBehaviour
         }
     }
 
-    public CoverPoint GetClosest(Vector3 sourcePosition, Vector3 coveredFrom)
-    {
-        SortPoints(coveredFrom);
-        
-        CoverPoint result = null;
-        foreach (var coverPoint in CoverPoints)
-        {
-            if(!coverPoint.HasOwner && IsCovered(coverPoint.Position, coveredFrom))
-            {
-                result = coverPoint;
-                break;
-            }
-        }
-        return result;
-    }
-
     public bool IsCovered(Vector3 position, Vector3 coveredFrom)
     {
         var direction = coveredFrom - position;
