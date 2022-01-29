@@ -42,28 +42,38 @@ public class AiController : MonoBehaviour
 
     void UpdateAgents()
     {
+        // Filling Agents pool for current AI tick
         var availableAgents = FillAvailableAgents();
+        
+        // Sorting cover points by distance to target to start with most appropriate
         var sortedPoints = Covers.GetSortedPoints(TargetToFollow.position);
 
+        // Distributing points to agents
         for (int i = 0; i < sortedPoints.Count; i++)
         {
             var point = sortedPoints[i];
             if (!IsCovered(point))
             {
+                // Skip bad points with straight line of sight to target
                 continue;
             }
-            
+
+            AiAgent agentToRemove;
             if (!point.HasOwner)
             {
-                SetClosestAvailableAgent(availableAgents, point);
+                // Set closest agent and remove him from pool
+                agentToRemove = SetClosestAvailableAgent(availableAgents, point);
             }
             else
             {
-                RemoveAvailableAgent(point.Owner);
+                // If good point already has owner, then just removing him from pool
+                agentToRemove = point.Owner;
             }
-
+            RemoveAvailableAgent(agentToRemove);
+            
             if (!AnyAvailableAgents())
             {
+                // If all agents are set, then finishing
                 break;
             }
         }
@@ -108,8 +118,8 @@ public class AiController : MonoBehaviour
             }
         }
     }
-
-    void SetClosestAvailableAgent(List<AiAgent> availableAgents, CoverPoint point)
+    
+    AiAgent SetClosestAvailableAgent(List<AiAgent> availableAgents, CoverPoint point)
     {
         AiAgent closestAgent = null;
         var minSqrDistance = float.MaxValue;
@@ -128,7 +138,6 @@ public class AiController : MonoBehaviour
             }
         }
         closestAgent.SetDestination(point);
-        
-        RemoveAvailableAgent(closestAgent);
+        return closestAgent;
     }
 }
