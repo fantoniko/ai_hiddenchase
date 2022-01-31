@@ -22,7 +22,10 @@ public sealed class CoverController : MonoBehaviour
     static Comparison<CoverPoint> ComparePoints = (a, b) =>
     {
         var targetPosition = TargetPosition;
-        return (int)((a.Position - targetPosition).sqrMagnitude - (b.Position - targetPosition).sqrMagnitude);
+        var deltaDistance = (a.Position - targetPosition).sqrMagnitude - (b.Position - targetPosition).sqrMagnitude;
+        return deltaDistance > 0f ? 1
+            : deltaDistance < 0f ? -1
+            : 0;
     };
 
     public void Init()
